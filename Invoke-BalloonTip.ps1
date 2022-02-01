@@ -1,3 +1,4 @@
+
 Function Invoke-BalloonTip {
     <#
     .Synopsis
@@ -13,8 +14,7 @@ Function Invoke-BalloonTip {
         The type of message. This value determines what type of icon to display. Valid values are
     .Parameter SysTrayIcon
         The path to a file that you will use as the system tray icon. Default is the PowerShell ISE icon.
-    .Parameter Duration
-        The number of seconds to display the balloon popup. The default is 1000.
+
     .Inputs
         None
     .Outputs
@@ -36,12 +36,11 @@ Function Invoke-BalloonTip {
         [System.Windows.Forms.ToolTipIcon]$MessageType="Info",
      
         [Parameter(HelpMessage="The path to a file to use its icon in the system tray")]
-        [string]$SysTrayIconPath='C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',     
+        [string]$SysTrayIconPath     
 
-        [Parameter(HelpMessage="The number of milliseconds to display the message.")]
-        [int]$Duration=1000
     )
     
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 
     Add-Type -AssemblyName System.Windows.Forms
 
     If (-NOT $global:balloon) {
@@ -59,7 +58,11 @@ Function Invoke-BalloonTip {
     }
 
     #Need an icon for the tray
-    $path = Get-Process -id $pid | Select-Object -ExpandProperty Path
+    if ($SysTrayIconPath) {
+        $path = $SysTrayIconPath
+    } else {
+        $path = Get-Process -id $pid | Select-Object -ExpandProperty Path
+    }    
 
     #Extract the icon from the file
     $balloon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
@@ -71,7 +74,7 @@ Function Invoke-BalloonTip {
     $balloon.Visible = $true
 
     #Display the tip and specify in milliseconds on how long balloon will stay visible
-    $balloon.ShowBalloonTip($Duration)
+    $balloon.ShowBalloonTip(1000)
 
     Write-Verbose "Ending function"
 

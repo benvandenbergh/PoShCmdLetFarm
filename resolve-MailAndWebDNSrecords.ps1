@@ -1,12 +1,14 @@
 function resolve-MailAndWebDNSrecords {
     <#
-   .SYNOPSIS
-       Get Mail- and Web-related DNS records
-   .PARAMETER DNSdomain 
-       Public DNS domain-name
-   .EXAMPLE
-       resolve-MailAndWebDNSrecords -DNSdomain reynaers.com
-
+    .SYNOPSIS
+        Get Mail- and Web-related DNS records
+    .PARAMETER DNSdomain 
+        Public DNS domain-name
+    .EXAMPLE
+        resolve-MailAndWebDNSrecords -DNSdomain spacex.com
+    .NOTES   
+        Name: resolve-MailAndWebDNSrecords
+        Author: BenVDB
    #>
    [cmdletbinding()]
    Param (

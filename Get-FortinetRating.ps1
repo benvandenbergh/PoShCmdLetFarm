@@ -19,5 +19,5 @@ Function Get-FortinetRating {
         @{name="Url";e={$url}},`
         @{name="Category";e={$_.line.split(":")[1].replace("</h4>","").Trim()}},`
         @{name="Description";e={$_.Context.PostContext.split("<br>")[0].replace("<p>","").trim()}},`
-        @{name="Group";e={$_.Context.PostContext.split("<br>")[1].split("-")[0].replace("Group:","").Trim()}}       
+        @{name="Group";e={$_.Context.PostContext.split("<br>")[1].split("-")[0].replace("Group:","").replace("</p>","").Trim()}}       
 }  

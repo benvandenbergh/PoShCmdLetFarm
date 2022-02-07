@@ -13,7 +13,7 @@ function resolve-MailAndWebDNSrecords {
    [cmdletbinding()]
    Param (
            [Parameter(Mandatory=$true)][string]$DNSdomain,
-           [Parameter][string]$DNSserver = "1.1.1.1"
+           [string]$DNSserver = "1.1.1.1"
        ) 
    $mxrecords = Resolve-DnsName -Name $DNSdomain -Type MX -Server $DNSserver -ErrorAction SilentlyContinue
    $txtrecords = Resolve-DnsName -Name $DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue

@@ -2,9 +2,9 @@ function Unwind-SPF {
     param (
         [string]$DNSName,
         [int]$Level=0,
-        [Parameter][string]$DNSserver = "1.1.1.1"
+        [string]$DNSserver = "1.1.1.1"
     )
-    Resolve-DnsName $DNSName -Type TXT |
+    Resolve-DnsName $DNSName -Type TXT -Server $DNSserver |
         ForEach-Object {
             if ($_.Text -match 'v=spf1\s'){
                 [PSCustomObject]@{
@@ -14,7 +14,7 @@ function Unwind-SPF {
                 $_.Text -Split '\s' |
                     Where-Object {$_ -match 'include:(.+$)'}|
                         ForEach-Object  {
-                            UnwindSPF $Matches[1] ($Level + 1)
+                            Unwind-SPF $Matches[1] ($Level + 1)
                         }
             }
         }

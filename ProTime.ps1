@@ -51,8 +51,13 @@ Function Get-ProTimeWerkurenAPI {
     #$jaar = (Invoke-RestMethod -ContentType "application/json" -Uri $jaaroverzicht -Method GET -Headers $headers -WebSession $session).relevantMonths
  
     #$flexformatted = ([int]($flex.Substring(1).split(":")[0]) * 60) + [int]($flex.Substring(1).split(":")[1])
-    $flexformatted = (([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1]))
-    if ($flex.Substring(0,1) -eq "-") {$flexformatted = $flexformatted * -1}
+    
+    if ($flex.Substring(0,1) -eq "-") {
+        $flex = $flex.Substring(1)
+        $flexformatted = ((([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1])) * -1)
+    } else {
+        $flexformatted = (([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1]))
+    }
  
     #"flex     = $flex"
     #"clocking = $clocking"

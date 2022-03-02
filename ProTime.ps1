@@ -11,7 +11,7 @@ Function Get-ProTimeWerkurenAPI {
             Write-Error -Message "Module ApertaCookie bestaat niet, gelieve deze te installeren:
             Install-Module ApertaCookie" -ErrorAction Stop
         }
-        $cookievalue = (get-decryptedcookiesinfo -browser Edge -domain reynaersaluminium.myprotime.eu | where-object {$_.name -eq "Fusion"}).decrypted_value
+        $cookievalue = (get-decryptedcookiesinfo -browser Chrome -domain reynaersaluminium.myprotime.eu | where-object {$_.name -eq "Fusion"}).decrypted_value
     }
 
     #get Bearer token

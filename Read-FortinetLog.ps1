@@ -4,7 +4,7 @@ Function Read-FortinetLog {
     [Parameter(Mandatory=$true)]$FilePath
     )
 
-    Get-Content -Path $FilePath -Head 1 | ForEach-Object {
+    Get-Content -Path $FilePath | ForEach-Object {
         $obj = [PSCustomObject]@{}
         ($_ -replace ".$").Substring(1).Split(""",""") | ForEach-Object {
             "XX $_ XX"

@@ -2,7 +2,8 @@ Function Get-ProTimeWerkurenAPI {
     [cmdletbinding()]
     Param (
             [Parameter()][string]$employeecode = "49155",
-            [Parameter()][string]$cookievalue
+            [Parameter()][string]$cookievalue,
+            [Parameter(Mandatory=$false)][Switch]$details
     )
 
     #get the Fusion-cookie from Edge-browser through ApertaCookie-module if thereis no cookie filled in
@@ -13,6 +14,11 @@ Function Get-ProTimeWerkurenAPI {
         }
         $cookievalue = (get-decryptedcookiesinfo -browser Chrome -domain reynaersaluminium.myprotime.eu | where-object {$_.name -eq "Fusion"}).decrypted_value
     }
+
+    #URLs
+    $urldagdetails = "https://reynaersaluminium.myprotime.eu/api/daydetail/person/$($employeecode)?date=$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)"
+    $urlflex = "https://reynaersaluminium.myprotime.eu/entitlements/api/groups/summary/$($employeecode)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)?includeFlextime=true"#&includeTransferRequests=true
+    $jaaroverzicht = "https://reynaersaluminium.myprotime.eu/yearcalendar/api/calendar/person/$($employeecode)/year/$((Get-Date).year)"
 
     #get Bearer token
     $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -39,30 +45,59 @@ Function Get-ProTimeWerkurenAPI {
    
     $headers = @{Authorization = $bearertoken}
    
-    #URLs
-    $urldagdetails = "https://reynaersaluminium.myprotime.eu/api/daydetail/person/$($employeecode)?date=$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)"
-    $urlflex = "https://reynaersaluminium.myprotime.eu/entitlements/api/groups/summary/$($employeecode)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)?includeFlextime=true"#&includeTransferRequests=true
-    #$jaaroverzicht = "https://reynaersaluminium.myprotime.eu/yearcalendar/api/calendar/person/$($employeecode)/year/$((Get-Date).year)"
- 
-    $flex = (Invoke-RestMethod -ContentType "application/json" -Uri $urlflex -Method GET -Headers $headers -WebSession $session).flextimeSummary.balance
-   
-    $clocking = (Invoke-RestMethod -ContentType "application/json" -Uri $urldagdetails -Method GET -Headers $headers -WebSession $session).clockings.clockedtime
-   
-    #$jaar = (Invoke-RestMethod -ContentType "application/json" -Uri $jaaroverzicht -Method GET -Headers $headers -WebSession $session).relevantMonths
- 
-    #$flexformatted = ([int]($flex.Substring(1).split(":")[0]) * 60) + [int]($flex.Substring(1).split(":")[1])
+    if ($details) {
+        $jaar = (Invoke-RestMethod -ContentType "application/json" -Uri $jaaroverzicht -Method GET -Headers $headers -WebSession $session).relevantMonths
+
+        #0..11 | ForEach-Object {
+        #    $maand = $_
+        #    (($jaar.$maand).relevantDays | Get-Member | Where-Object MemberType -eq "NoteProperty").Name | ForEach-Object {
+        #        $jaar.$maand.relevantDays.$_ | Select-Object @{n="month";e={$maand + 1}},day,absences,isInactivityDay
+        #    }
+        #} | Sort-Object month,day
+
+        $PeriodStart = Get-Date "1/1/$((Get-Date).year)"
+        $PeriodEnd = Get-Date
+        $timerange = while ($PeriodStart -le $PeriodEnd) {
+        
+            $PeriodStart
+            $PeriodStart = $PeriodStart.AddDays(1)
     
-    if ($flex.Substring(0,1) -eq "-") {
-        $flex = $flex.Substring(1)
-        $flexformatted = ((([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1])) * -1)
+        }
+
+        $timerange | Select-Object year,month,day,DayOfWeek,@{n="date";e={$_.ToShortDateString()}},`
+        @{n="isInactivityDay";e={$jaar.$($_.month -1).relevantDays.$($_.day).isInactivityDay}},`
+        @{n="absenceState";e={$jaar.$($_.month -1).relevantDays.$($_.day).absenceState}} | ForEach-Object {
+            #if ($_.absenceState -eq "Default") {
+            #    $_ | Select-Object *,@{n="flextime";e={$null}},@{n="flextimeBalance";e={$null}},@{n="dayEvents";e={$null}},@{n="normalTime";e={$null}}
+            #} else {
+                $urldagdetails = "https://reynaersaluminium.myprotime.eu/api/daydetail/person/$($employeecode)?date=$($_.year)-$("{0:00}" -f $_.month)-$("{0:00}" -f $_.day)"
+                $dagdetail = Invoke-RestMethod -ContentType "application/json" -Uri $urldagdetails -Method GET -Headers $headers -WebSession $session
+                $_ | Select-Object *,
+                    @{n="dayEvents";e={$dagdetail.dayEvents.title}},
+                    @{n="flextime";e={$dagdetail.presenceModel.flextime}},
+                    @{n="flextimeBalance";e={$dagdetail.presenceModel.flextimeBalance}},
+                    @{n="normalTime";e={$dagdetail.presenceModel.normalTime}}
+            #}
+        }
+
     } else {
-        $flexformatted = (([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1]))
+ 
+        $flex = (Invoke-RestMethod -ContentType "application/json" -Uri $urlflex -Method GET -Headers $headers -WebSession $session).flextimeSummary.balance
+   
+        $clocking = (Invoke-RestMethod -ContentType "application/json" -Uri $urldagdetails -Method GET -Headers $headers -WebSession $session).clockings.clockedtime
+        
+        if ($flex.Substring(0,1) -eq "-") {
+            $flex = $flex.Substring(1)
+            $flexformatted = ((([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1])) * -1)
+        } else {
+            $flexformatted = (([int]($flex.split(":")[0]) * 60) + [int]($flex.split(":")[1]))
+        }
+     
+        #"flex     = $flex"
+        #"clocking = $clocking"
+     
+        Get-Werkuren $clocking -overminuten $flexformatted
     }
- 
-    #"flex     = $flex"
-    #"clocking = $clocking"
- 
-    Get-Werkuren $clocking -overminuten $flexformatted
 }
  
 Function Get-Werkuren {

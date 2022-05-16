@@ -17,7 +17,7 @@ Function Get-ProTimeWerkurenAPI {
 
     #URLs
     $urldagdetails = "https://reynaersaluminium.myprotime.eu/api/daydetail/person/$($employeecode)?date=$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)"
-    $urlflex = "https://reynaersaluminium.myprotime.eu/entitlements/api/groups/summary/$($employeecode)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)?includeFlextime=true"#&includeTransferRequests=true
+    $urlflex = "https://reynaersaluminium.myprotime.eu/bff/entitlements/groups/summary/$($employeecode)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)/$((Get-Date).year)-$("{0:00}" -f (Get-Date).month)-$("{0:00}" -f (Get-Date).day)?includeFlextime=true"#&includeTransferRequests=true
     $jaaroverzicht = "https://reynaersaluminium.myprotime.eu/yearcalendar/api/calendar/person/$($employeecode)/year/$((Get-Date).year)"
 
     #get Bearer token

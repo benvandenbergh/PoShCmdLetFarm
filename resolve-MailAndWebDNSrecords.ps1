@@ -16,6 +16,7 @@ function resolve-MailAndWebDNSrecords {
            [string]$DNSserver = "1.1.1.1"
        ) 
    $mxrecords = Resolve-DnsName -Name $DNSdomain -Type MX -Server $DNSserver -ErrorAction SilentlyContinue
+   $nsrecords = (Resolve-DnsName -Name $DNSdomain -Type NS -Server $DNSserver -ErrorAction SilentlyContinue).NameHost -join ","
    $txtrecords = Resolve-DnsName -Name $DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue
    $dmarc = Resolve-DnsName -Name _dmarc.$DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue
    $aroot = Resolve-DnsName -Name $DNSdomain -Server $DNSserver -ErrorAction SilentlyContinue -Type A
@@ -45,5 +46,5 @@ function resolve-MailAndWebDNSrecords {
        }
    }
 
-   [PSCustomObject]@{DNSserver=$DNSserver;DNSdomain=$DNSdomain;aRoot=$arootresult;www=$wwwresult;MX=$mxrecords.NameExchange;autodiscover=$autodiscover.IpAddress;_autodiscover=$_autodiscover.NameTarget;lyncdiscover=$lyncdiscover.IpAddress;sip=$sip.IpAddress;meet=$meet.IpAddress;_sip="$($_sip.NameTarget):$($_sip.Port)";_sipfederationtls="$($_sipfederationtls.NameTarget):$($_sipfederationtls.Port)";SPF1=($txtrecords | Where-Object Strings -like "*spf1*").Strings;SPF2=($txtrecords | Where-Object Strings -like "*spf2*").Strings;DMARC=$dmarc.Strings;"#otherRootTXT"=$otherTXTrecords}
+   [PSCustomObject]@{DNSserver=$DNSserver;DNSdomain=$DNSdomain;NameServers=$nsrecords;aRoot=$arootresult;www=$wwwresult;MX=$mxrecords.NameExchange;autodiscover=$autodiscover.IpAddress;_autodiscover=$_autodiscover.NameTarget;lyncdiscover=$lyncdiscover.IpAddress;sip=$sip.IpAddress;meet=$meet.IpAddress;_sip="$($_sip.NameTarget):$($_sip.Port)";_sipfederationtls="$($_sipfederationtls.NameTarget):$($_sipfederationtls.Port)";SPF1=($txtrecords | Where-Object Strings -like "*spf1*").Strings;SPF2=($txtrecords | Where-Object Strings -like "*spf2*").Strings;DMARC=$dmarc.Strings;"#otherRootTXT"=$otherTXTrecords}
 }

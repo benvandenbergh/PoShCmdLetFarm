@@ -13,10 +13,10 @@ function resolve-MailAndWebDNSrecords {
    [cmdletbinding()]
    Param (
            [Parameter(Mandatory=$true)][string]$DNSdomain,
-           [string]$DNSserver = "1.1.1.1"
+           [string]$DNSserver = (Get-Random "1.1.1.1","1.0.0.1","8.8.8.8","8.8.4.4")
        ) 
    $mxrecords = Resolve-DnsName -Name $DNSdomain -Type MX -Server $DNSserver -ErrorAction SilentlyContinue
-   $nsrecords = (Resolve-DnsName -Name $DNSdomain -Type NS -Server $DNSserver -ErrorAction SilentlyContinue).NameHost -join ","
+   $nsrecords = (Resolve-DnsName -Name $DNSdomain -Type NS -Server $DNSserver -ErrorAction SilentlyContinue).NameHost -join ", "
    $txtrecords = Resolve-DnsName -Name $DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue
    $dmarc = Resolve-DnsName -Name _dmarc.$DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue
    $aroot = Resolve-DnsName -Name $DNSdomain -Server $DNSserver -ErrorAction SilentlyContinue -Type A
@@ -28,6 +28,7 @@ function resolve-MailAndWebDNSrecords {
    $meet = Resolve-DnsName -Name meet.$DNSdomain -Server $DNSserver -ErrorAction SilentlyContinue -Type A
    $_sipfederationtls = Resolve-DnsName -Name _sipfederationtls._tcp.$DNSdomain -Server $DNSserver -Type SRV -ErrorAction SilentlyContinue
    $_sip = Resolve-DnsName -Name _sip._tls.$DNSdomain -Server $DNSserver -Type SRV -ErrorAction SilentlyContinue
+   $cm = Resolve-DnsName -Name cm._domainkey.$DNSdomain -Server $DNSserver -Type TXT -ErrorAction SilentlyContinue
    $otherTXTrecords = ($txtrecords | Where-Object Type -ne "SOA" | Where-Object Strings -notlike "*spf*").count
 
    if ($aroot.IpAddress) {
@@ -46,5 +47,5 @@ function resolve-MailAndWebDNSrecords {
        }
    }
 
-   [PSCustomObject]@{DNSserver=$DNSserver;DNSdomain=$DNSdomain;NameServers=$nsrecords;aRoot=$arootresult;www=$wwwresult;MX=$mxrecords.NameExchange;autodiscover=$autodiscover.IpAddress;_autodiscover=$_autodiscover.NameTarget;lyncdiscover=$lyncdiscover.IpAddress;sip=$sip.IpAddress;meet=$meet.IpAddress;_sip="$($_sip.NameTarget):$($_sip.Port)";_sipfederationtls="$($_sipfederationtls.NameTarget):$($_sipfederationtls.Port)";SPF1=($txtrecords | Where-Object Strings -like "*spf1*").Strings;SPF2=($txtrecords | Where-Object Strings -like "*spf2*").Strings;DMARC=$dmarc.Strings;"#otherRootTXT"=$otherTXTrecords}
+   [PSCustomObject]@{DNSserver=$DNSserver;DNSdomain=$DNSdomain;NameServers=$nsrecords;aRoot=$arootresult;www=$wwwresult;MX=$mxrecords.NameExchange;autodiscover=$autodiscover.IpAddress;_autodiscover=$_autodiscover.NameTarget;lyncdiscover=$lyncdiscover.IpAddress;sip=$sip.IpAddress;meet=$meet.IpAddress;_sip="$($_sip.NameTarget):$($_sip.Port)";_sipfederationtls="$($_sipfederationtls.NameTarget):$($_sipfederationtls.Port)";SPF=(($txtrecords | Where-Object Strings -like "v=spf1*").Strings -join [Environment]::NewLine);DMARC=($dmarc.Strings -join [Environment]::NewLine);CampaignMonitor=($cm.Strings -join [Environment]::NewLine);"#otherRootTXT"=$otherTXTrecords}
 }

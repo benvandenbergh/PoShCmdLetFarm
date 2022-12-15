@@ -1,9 +1,9 @@
 function Get-VssShadowStorage {
       <#
     .SYNOPSIS
-        PoSh-alternative to vssadmin list shadowstorage
+        PoSh-alternative to vssadmin list shadowstorage, using WMI
     .PARAMETER Computername
-        this is the computer you want to connect to over WMI
+        this is the computer you want to connect to
     .EXAMPLE
         list-VssShadowStorage -Computername myComputer
     #>

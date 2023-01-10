@@ -1,4 +1,4 @@
-Function get-uptime {
+Function get-uptimeperiods {
     $shutdowntime = Get-Date
     Remove-Variable objectCollection -Force -ErrorAction SilentlyContinue
     $objectCollection=@()

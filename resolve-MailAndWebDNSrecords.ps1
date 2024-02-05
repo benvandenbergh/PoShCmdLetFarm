@@ -20,6 +20,7 @@ function resolve-MailAndWebDNSrecords {
    $txtrecords = Resolve-DnsName -Name $DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue
    $dmarc = Resolve-DnsName -Name _dmarc.$DNSdomain -Type TXT -Server $DNSserver -ErrorAction SilentlyContinue
    $aroot = Resolve-DnsName -Name $DNSdomain -Server $DNSserver -ErrorAction SilentlyContinue -Type A
+   $TTL = Resolve-DnsName -Name $DNSdomain -Server (Resolve-DnsName -Name $DNSdomain -Type NS -Server $DNSserver -ErrorAction SilentlyContinue).NameHost[0] -ErrorAction SilentlyContinue -Type A
    $www = Resolve-DnsName -Name www.$DNSdomain -Server $DNSserver -ErrorAction SilentlyContinue -Type A
    $autodiscover = Resolve-DnsName -Name autodiscover.$DNSdomain -Server $DNSserver -ErrorAction SilentlyContinue
    $_autodiscover = Resolve-DnsName -Name _autodiscover._tcp.$DNSdomain -Server $DNSserver -Type SRV -ErrorAction SilentlyContinue
@@ -47,5 +48,5 @@ function resolve-MailAndWebDNSrecords {
        }
    }
 
-   [PSCustomObject]@{DNSserver=$DNSserver;DNSdomain=$DNSdomain;NameServers=$nsrecords;aRoot=$arootresult;www=$wwwresult;MX=$mxrecords.NameExchange;autodiscover=$autodiscover.IpAddress;_autodiscover=$_autodiscover.NameTarget;lyncdiscover=$lyncdiscover.IpAddress;sip=$sip.IpAddress;meet=$meet.IpAddress;_sip="$($_sip.NameTarget):$($_sip.Port)";_sipfederationtls="$($_sipfederationtls.NameTarget):$($_sipfederationtls.Port)";SPF=(($txtrecords | Where-Object Strings -like "v=spf1*").Strings -join [Environment]::NewLine);DMARC=($dmarc.Strings -join [Environment]::NewLine);CampaignMonitor=($cm.Strings -join [Environment]::NewLine);"#otherRootTXT"=$otherTXTrecords}
+   [PSCustomObject]@{DNSserver=$DNSserver;DNSdomain=$DNSdomain;NameServers=$nsrecords;TTL=$TTL.TTL;aRoot=$arootresult;www=$wwwresult;MX=$mxrecords.NameExchange;autodiscover=$autodiscover.IpAddress;_autodiscover=$_autodiscover.NameTarget;lyncdiscover=$lyncdiscover.IpAddress;sip=$sip.IpAddress;meet=$meet.IpAddress;_sip="$($_sip.NameTarget):$($_sip.Port)";_sipfederationtls="$($_sipfederationtls.NameTarget):$($_sipfederationtls.Port)";SPF=(($txtrecords | Where-Object Strings -like "v=spf1*").Strings -join [Environment]::NewLine);DMARC=($dmarc.Strings -join [Environment]::NewLine);CampaignMonitor=($cm.Strings -join [Environment]::NewLine);"#otherRootTXT"=$otherTXTrecords}
 }
